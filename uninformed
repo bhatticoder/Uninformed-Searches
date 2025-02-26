@@ -2,7 +2,9 @@ from typing import List, Tuple
 import heapq
 from collections import deque
 import matplotlib.pyplot as plt
+
 class SearchAlgorithm:
+
     @staticmethod
     def get_neighbors(x: int, y: int, grid: List[List[str]]) -> List[Tuple[int, int]]:
         directions = []  # Right, Down, Left, Up
@@ -68,6 +70,7 @@ class SearchAlgorithm:
             if result_grid[x][y] not in ['S', 'T']:
                 result_grid[x][y] = str(idx)
         return len(final_path) - 1, result_grid
+
     # Implement Depth First Search
     @staticmethod
     def dfs(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
@@ -94,6 +97,7 @@ class SearchAlgorithm:
                     if neighbor not in visited:
                         stack.append((neighbor, path + [neighbor]))
         return -1, grid
+
     # Implement Breadth First Search
     @staticmethod
     def bfs(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
@@ -115,21 +119,22 @@ class SearchAlgorithm:
                         result_grid[px][py] = str(path_cost)
                     path_cost += 1
                 return len(path) - 1, result_grid
-
             # Explore all neighbors (Up, Right, Down, Left)
             for nx, ny in SearchAlgorithm.get_neighbors(x, y, grid):
                 if (nx, ny) not in visited:
                     visited.add((nx, ny))  # Mark as visited immediately when added to queue
                     queue.append(((nx, ny), path + [(nx, ny)]))
         return -1, grid
+
     # Implement Best First Search
     @staticmethod
     def best_first_search(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
         return -1, grid
-    # Implement A* Search
+
     @staticmethod
     def a_star_search(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
         return -1, grid
+
 if __name__ == "__main__":
     example = [
         ['0', '0', '0', '0'],
@@ -137,6 +142,7 @@ if __name__ == "__main__":
         ['S', '0', '-1', '0'],
         ['0', '0', '0', '-1']
     ]
+
     # DFS
     result_dfs, final_grid_dfs = SearchAlgorithm.ucs(example)
     print("UCS Result:", result_dfs)
