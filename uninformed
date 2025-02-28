@@ -2,9 +2,7 @@ from typing import List, Tuple
 import heapq
 from collections import deque
 import matplotlib.pyplot as plt
-
 class SearchAlgorithm:
-
     @staticmethod
     def get_neighbors(x: int, y: int, grid: List[List[str]]) -> List[Tuple[int, int]]:
         directions = []  # Right, Down, Left, Up
@@ -17,7 +15,6 @@ class SearchAlgorithm:
         if y > 0 and grid[x][y - 1] != '-1':  # Left
             directions.append((x, y - 1))
         return directions
-
     @staticmethod
     def get_start_target(grid: List[List[str]]) -> Tuple[Tuple[int, int], Tuple[int, int]]:
         start, target = None, None
@@ -28,7 +25,6 @@ class SearchAlgorithm:
                 elif grid[i][j] == 'T':
                     target = (i, j)
         return start, target
-
     @staticmethod
     def ucs(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
         start, target = SearchAlgorithm.get_start_target(grid)
@@ -70,7 +66,6 @@ class SearchAlgorithm:
             if result_grid[x][y] not in ['S', 'T']:
                 result_grid[x][y] = str(idx)
         return len(final_path) - 1, result_grid
-
     # Implement Depth First Search
     @staticmethod
     def dfs(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
@@ -97,7 +92,6 @@ class SearchAlgorithm:
                     if neighbor not in visited:
                         stack.append((neighbor, path + [neighbor]))
         return -1, grid
-
     # Implement Breadth First Search
     @staticmethod
     def bfs(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
@@ -125,28 +119,102 @@ class SearchAlgorithm:
                     visited.add((nx, ny))  # Mark as visited immediately when added to queue
                     queue.append(((nx, ny), path + [(nx, ny)]))
         return -1, grid
-
-    # Implement Best First Search
     @staticmethod
     def best_first_search(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
-        return -1, grid
+        start, target = SearchAlgorithm.get_start_target(grid)
+        if not start or not target:
+            return -1, grid
 
+        result_grid = [row.copy() for row in grid]
+        pq = []
+        heapq.heappush(pq, (0, start, [start]))
+        visited = set()
+        exploration_sequence = []
+
+        while pq:
+            _, (x, y), path = heapq.heappop(pq)
+            if (x, y) == target:
+                # Mark the path with indices
+                for idx, (px, py) in enumerate(path):
+                    if result_grid[px][py] not in ['S', 'T']:
+                        result_grid[px][py] = str(idx)
+                return len(path) - 1, result_grid
+
+            if (x, y) not in visited:
+                visited.add((x, y))
+                # Track exploration order (excluding start/target)
+                if (x, y) != start and (x, y) != target:
+                    exploration_sequence.append((x, y))
+                # Explore neighbors
+                for nx, ny in SearchAlgorithm.get_neighbors(x, y, grid):
+                    if (nx, ny) not in visited:
+                        heuristic = abs(nx - target[0]) + abs(ny - target[1])
+                        heapq.heappush(pq, (heuristic, (nx, ny), path + [(nx, ny)]))
+        # Mark exploration sequence numbers on the grid
+        for idx, (x, y) in enumerate(exploration_sequence, 1):
+            if result_grid[x][y] not in ['S', 'T']:
+                result_grid[x][y] = str(idx)
+        return -1, result_grid
     @staticmethod
     def a_star_search(grid: List[List[str]]) -> Tuple[int, List[List[str]]]:
-        return -1, grid
+        start, target = SearchAlgorithm.get_start_target(grid)
+        if not start or not target:
+            return -1, grid
 
+        result_grid = [row.copy() for row in grid]
+        pq = []
+        heapq.heappush(pq, (0, 0, start, []))  # (f, g, position, path)
+        visited = set()
+        exploration_sequence = []
+        final_path = None
+
+        while pq:
+            f, g, (x, y), path = heapq.heappop(pq)
+            if (x, y) in visited:
+                continue
+            visited.add((x, y))
+
+            if (x, y) != start and (x, y) != target:
+                exploration_sequence.append((x, y))
+
+            if (x, y) == target:
+                final_path = path + [(x, y)]
+                break
+
+            for nx, ny in SearchAlgorithm.get_neighbors(x, y, grid):
+                if (nx, ny) not in visited:
+                    new_g = g + 1
+                    heuristic = abs(nx - target[0]) + abs(ny - target[1])
+                    new_f = new_g + heuristic
+                    heapq.heappush(pq, (new_f, new_g, (nx, ny), path + [(x, y)]))
+
+        # Mark exploration sequence numbers
+        for idx, (x, y) in enumerate(exploration_sequence, 1):
+            if result_grid[x][y] not in ['S', 'T']:
+                result_grid[x][y] = str(idx)
+
+        if final_path:
+            # Mark the path on the grid correctly
+            for idx, (px, py) in enumerate(final_path):
+                if (px, py) == start or (px, py) == target:
+                    continue
+                result_grid[px][py] = str(idx)
+
+            result_grid[target[0]][target[1]] = 'T'
+            return len(final_path) - 1, result_grid
+        else:
+            return -1, result_grid
 if __name__ == "__main__":
     example = [
-        ['0', '0', '0', '0'],
-        ['0', '-1', '-1', 'T'],
-        ['S', '0', '-1', '0'],
-        ['0', '0', '0', '-1']
+        ['S',  '0',  '0', '0',  '-1', '-1', '-1', '-1'],
+        ['0',  '0',  '0', '0',  '0',  '-1', '-1', '-1'],
+        ['-1', '-1', '0', '-1', '-1', '0',  '0',  '0'],
+        ['-1', '0',  '0', '0',  '0',  '0',  '0',  'T']
     ]
-
-    # DFS
-    result_dfs, final_grid_dfs = SearchAlgorithm.ucs(example)
-    print("UCS Result:", result_dfs)
-    print("UCS Path:")
-    for row in final_grid_dfs:
+    # Test cases only
+    result_a_star, final_grid_a_star = SearchAlgorithm.a_star_search(example)
+    print("A* Result:", result_a_star)
+    print("A* Path:")
+    for row in final_grid_a_star:
         print(row)
     print()
